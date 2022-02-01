@@ -4,14 +4,12 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const GlobEntriesPlugin = require('webpack-watched-glob-entries-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-const ZipPlugin = require('zip-webpack-plugin')
 const WebextensionPlugin = require('webpack-webextension-plugin')
 const getExtensionInfo = require('./utils/get-extension-info')
-const getExtensionFileType = require('./utils/get-extension-file-type')
 const createPreset = require('./preset')
 const WebpackBar = require('webpackbar')
 
-module.exports = function webpackConfig ({
+module.exports = function webpackConfig({
   src = 'app',
   target = 'build/[vendor]',
   packageTarget = 'packages',
@@ -86,21 +84,44 @@ module.exports = function webpackConfig ({
     rules: []
   }
 
-  // Add babel support
-  config.module.rules.push({
-    test: /\.(js|jsx|mjs)$/,
-    exclude: /node_modules/,
-    use: {
-      loader: require.resolve('babel-loader'),
-      options: {
-        cacheDirectory: true,
-        ...createPreset({
-          vendor,
-          vendorVersion
-        })
-      }
+  const babelLoader = {
+    loader: require.resolve('babel-loader'),
+    options: {
+      sourceMaps: true,
+      cacheDirectory: true,
+      ...createPreset({
+        vendor,
+        vendorVersion
+      })
     }
-  })
+  };
+
+  // Add babel support
+  config.module.rules.push(
+    {
+      test: /\.((tsx?)|js|jsx|mjs)$/,
+      exclude: [
+        /node_modules/,
+        resolve(process.cwd(), 'app/scripts/fontawesome.js'),
+      ],
+      use: babelLoader,
+    },
+    {
+      test: /\.js$/,
+      use: [require.resolve('source-map-loader')],
+      enforce: 'pre'
+    },
+    // {
+    //   test: /\.(js|jsx|mjs)$/,
+    //   exclude: /node_modules/,
+    //   use: babelLoader,
+    // },
+    // {
+    //   test: /\.tsx?$/,
+    //   exclude: /node_modules/,
+    //   use: [babelLoader, 'ts-loader'],
+    // }
+  )
 
   /******************************/
   /*     WEBPACK.PLUGINS        */
@@ -108,7 +129,8 @@ module.exports = function webpackConfig ({
   config.plugins = []
 
   // Clear output directory
-  config.plugins.push(new CleanWebpackPlugin())
+  // config.plugins.push(new CleanWebpackPlugin());
+  config.plugins.push(new webpack.CleanPlugin({keep: /manifest\.json/}));
 
   // Watcher doesn't work well if you mistype casing in a path so we use
   // a plugin that prints an error when you attempt to do this.
@@ -181,14 +203,6 @@ module.exports = function webpackConfig ({
       }
     })
   )
-
-  // Pack extension
-  if (mode === 'production') {
-    config.plugins.push(new ZipPlugin({
-      path: packageTarget,
-      filename: `${name}.v${version}.${vendor}.${getExtensionFileType(vendor)}`
-    }))
-  }
 
   // Disable webpacks usage of eval & function string constructor
   // @url https://github.com/webpack/webpack/blob/master/buildin/global.js

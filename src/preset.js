@@ -4,23 +4,27 @@ module.exports = ({ vendor, vendorVersion }) => {
   const env = process.env.BABEL_ENV || process.env.NODE_ENV
   const isProduction = env === 'production'
   const targets = {}
-  targets[vendor] = vendorVersion || latest(vendor)
+  targets[vendor] = getTargetVendorVersion(vendor, vendorVersion)
+
   return {
     presets: [
       // Latest stable ECMAScript features
-      [require('@babel/preset-env').default, {
-        // `entry` transforms `@babel/polyfill` into individual requires for
-        // the targeted browsers. This is safer than `usage` which performs
-        // static code analysis to determine what's required.
-        // This is probably a fine default to help trim down bundles when
-        // end-users inevitably import '@babel/polyfill'.
-        useBuiltIns: 'entry',
-        corejs: { version: '3.15' },
-        // Do not transform modules to CJS
-        modules: false,
-        // Restrict to current vendor
-        targets
-      }],
+      require('@babel/preset-typescript').default,
+      [
+        require('@babel/preset-env').default, {
+          // `entry` transforms `@babel/polyfill` into individual requires for
+          // the targeted browsers. This is safer than `usage` which performs
+          // static code analysis to determine what's required.
+          // This is probably a fine default to help trim down bundles when
+          // end-users inevitably import '@babel/polyfill'.
+          useBuiltIns: 'entry',
+          corejs: { version: '3.20.3' },
+          // Do not transform modules to CJS
+          modules: false,
+          // debug: true,
+          // Restrict to current vendor
+          targets,
+        }],
       [
         require('@babel/preset-react').default,
         {
@@ -31,6 +35,7 @@ module.exports = ({ vendor, vendorVersion }) => {
       ]
     ],
     plugins: [
+      require('babel-plugin-ramda').default,
       // Necessary to include regardless of the environment because
       // in practice some other transforms (such as object-rest-spread)
       // don't work without it: https://github.com/babel/babel/issues/7215
@@ -75,7 +80,36 @@ module.exports = ({ vendor, vendorVersion }) => {
  * @param {String} vendor
  * @return {Number} version
  */
-function latest (vendor) {
+function latest(vendor) {
   const { versions } = browserslist.data[vendor]
   return versions[versions.length - 1]
+}
+
+/**
+ * Returns the appropriate
+ * vendor version to target
+ * @param {String} vendor
+ * @param {String} version
+ * @return {Number}
+ */
+function getTargetVendorVersion(vendor, version) {
+  // Return the specified version if it is numeric
+  if (!isNaN(version)) {
+    return parseInt(version, 10)
+  }
+
+  // Default to the latest version of each browser
+  let query = 'last 1 version';
+
+  // For "auto" use project's config restricted to target vendor.
+  // If target vendor is not in the project's config, use defaults
+  if (typeof version === 'string' && version.toLowerCase() === 'auto') {
+    query = `browserslist config and ${vendor} > 0 or defaults`
+  }
+
+  // The last value returned by `browserslist()` is the "oldest" that matches the query
+  let browserString = browserslist(query).filter(browser => browser.indexOf(vendor) !== -1).pop()
+
+  // Convert the browser string (ex "chrome 67") to just the version number
+  return parseInt(browserString.replace(vendor + ' ', ''), 10)
 }
