@@ -104,7 +104,7 @@ module.exports = function webpackConfig({
         /node_modules/,
         resolve(process.cwd(), 'app/scripts/fontawesome.js'),
       ],
-      use: babelLoader,
+      use: [babelLoader, 'eslint-loader'],
     },
     {
       test: /\.js$/,
@@ -130,7 +130,7 @@ module.exports = function webpackConfig({
 
   // Clear output directory
   // config.plugins.push(new CleanWebpackPlugin());
-  config.plugins.push(new webpack.CleanPlugin({keep: /manifest\.json/}));
+  config.plugins.push(new webpack.CleanPlugin({ keep: /manifest\.json/ }));
 
   // Watcher doesn't work well if you mistype casing in a path so we use
   // a plugin that prints an error when you attempt to do this.
