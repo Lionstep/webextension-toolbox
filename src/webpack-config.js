@@ -104,7 +104,7 @@ module.exports = function webpackConfig({
         /node_modules/,
         resolve(process.cwd(), 'app/scripts/fontawesome.js'),
       ],
-      use: [babelLoader, require.resolve('eslint-loader')],
+      use: babelLoader,
     },
     {
       test: /\.js$/,
