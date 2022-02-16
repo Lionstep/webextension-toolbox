@@ -196,6 +196,7 @@ module.exports = function webpackConfig({
   config.plugins.push(
     new WebextensionPlugin({
       vendor,
+      autoreload: dev,
       manifestDefaults: {
         name,
         description,
