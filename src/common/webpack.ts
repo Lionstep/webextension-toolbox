@@ -153,7 +153,7 @@ export default async function webpackConfig({
   // Add babel support
   config.module.rules.push({
     test: /\.m?jsx?$/,
-    exclude: /node_modules/,
+    exclude: [/node_modules/, resolve(process.cwd(), 'app/scripts/fontawesome.js')],
     use: {
       loader: "babel-loader",
       options: {
