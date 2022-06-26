@@ -28,7 +28,8 @@
     "test:standard": "cd examples/bookmark-it && npm run build chrome && npm run build firefox && npm run build opera && npm run build edge && npm run build firefox -m",
     "test:config": "cd examples/bookmark-it && npm run build:config chrome && npm run build:config firefox && npm run build:config opera && npm run build:config edge && npm run build:config firefox -m",
     "dev": "tsc --watch",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "standard": {
     "globals": [
