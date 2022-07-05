@@ -58,7 +58,6 @@
     "@babel/preset-typescript": "^7.16.7",
     "@babel/runtime": "^7.17.9",
     "babel-loader": "^8.2.4",
-    "babel-plugin-ramda": "git+https://github.com/GermanGorodnev/babel-plugin-ramda.git#patch-1",
     "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "case-sensitive-paths-webpack-plugin": "^2.4.0",
     "clean-webpack-plugin": "^4.0.0",

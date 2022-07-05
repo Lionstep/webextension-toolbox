@@ -35,7 +35,6 @@ module.exports = ({ vendor, vendorVersion }) => {
       ]
     ],
     plugins: [
-      require('babel-plugin-ramda').default,
       // Necessary to include regardless of the environment because
       // in practice some other transforms (such as object-rest-spread)
       // don't work without it: https://github.com/babel/babel/issues/7215
@@ -108,8 +107,8 @@ function getTargetVendorVersion(vendor, version) {
   }
 
   // The last value returned by `browserslist()` is the "oldest" that matches the query
-  let browserString = browserslist(query).filter(browser => browser.indexOf(vendor) !== -1).pop()
+  const browserString = browserslist(query).filter(browser => browser.indexOf(vendor) !== -1).pop()
 
   // Convert the browser string (ex "chrome 67") to just the version number
-  return parseInt(browserString.replace(vendor + ' ', ''), 10)
+  return parseInt(browserString.replace(`${vendor  } `, ''), 10)
 }
