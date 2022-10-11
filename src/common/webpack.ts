@@ -155,7 +155,7 @@ export default async function webpackConfig({
     test: /\.m?jsx?$/,
     exclude: [/node_modules/, resolve(process.cwd(), 'app/scripts/fontawesome.js')],
     use: {
-      loader: "babel-loader",
+      loader: "babel-loader?cacheDirectory",
       options: {
         envName: mode,
         cacheDirectory: false,
