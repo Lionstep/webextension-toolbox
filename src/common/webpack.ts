@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { resolve } from "path";
 import { Configuration, EnvironmentPlugin } from "webpack";
 import GlobEntriesPlugin from "webpack-watched-glob-entries-plugin";
@@ -150,40 +151,55 @@ export default async function webpackConfig({
   config.module = {};
   config.module.rules = [];
 
-  // Add babel support
+  const vendorVersionNum = vendorVersion || getLastNVendorVersion(3, vendor);
+  const compileTarget = `${vendor}${vendorVersionNum}`;
+  console.log({ compileTarget });
+
+  // prepare esbuild loader
+  const esbuildLoader = {
+    loader: require.resolve('esbuild-loader'),
+    options: {
+      loader: 'tsx',
+      target: compileTarget,
+    }
+  };
+
+  // prepare babel loader
+  // const babelLoader = {
+  //   loader: "babel-loader?cacheDirectory",
+  //   options: {
+  //     envName: mode,
+  //     cacheDirectory: false,
+  //     presets: [
+  //       [
+  //         "@babel/preset-env",
+  //         {
+  //           // Do not transform modules to CJS
+  //           modules: false,
+  //           // Restrict to vendor
+  //           targets: {
+  //             [vendor]: vendorVersion || getLastNVendorVersion(3, vendor),
+  //           },
+  //         },
+  //       ],
+  //     ],
+  //   },
+  // };
+
   config.module.rules.push({
-    test: /\.m?jsx?$/,
+    test: /\.(?:m?jsx?)|(?:tsx?)$/,
     exclude: [/node_modules/, resolve(process.cwd(), 'app/scripts/fontawesome.js')],
-    use: {
-      loader: "babel-loader?cacheDirectory",
-      options: {
-        envName: mode,
-        cacheDirectory: false,
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              // Do not transform modules to CJS
-              modules: false,
-              // Restrict to vendor
-              targets: {
-                [vendor]: vendorVersion || getLastNVendorVersion(3, vendor),
-              },
-            },
-          ],
-        ],
-      },
-    },
+    use: esbuildLoader,
   });
 
   // Add TypeScript support if there is a tsconfig.json file
-  if (typescript) {
-    config.module.rules.push({
-      test: /\.tsx?$/,
-      exclude: /node_modules/,
-      loader: "ts-loader",
-    });
-  }
+  // if (typescript) {
+  //   config.module.rules.push({
+  //     test: /\.tsx?$/,
+  //     exclude: /node_modules/,
+  //     loader: "ts-loader",
+  //   });
+  // }
 
   /** *************************** */
   /*     WEBPACK.PLUGINS        */
