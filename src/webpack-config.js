@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-unused-vars */
 const { resolve } = require('path')
 const webpack = require('webpack')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
@@ -5,9 +7,9 @@ const GlobEntriesPlugin = require('webpack-watched-glob-entries-plugin')
 const CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const WebextensionPlugin = require('webpack-webextension-plugin')
-const getExtensionInfo = require('./utils/get-extension-info')
-const createPreset = require('./preset')
 const WebpackBar = require('webpackbar')
+const getExtensionInfo = require('./common/utils/getExtensionInfo')
+const createPreset = require('./preset')
 
 module.exports = function webpackConfig({
   src = 'app',
@@ -32,9 +34,9 @@ module.exports = function webpackConfig({
   // Get some defaults
   const { version, name, description } = getExtensionInfo(src)
 
-  /******************************/
+  /** *************************** */
   /*      WEBPACK               */
-  /******************************/
+  /** *************************** */
   const config = {
     mode,
     context: resolve(src)
@@ -48,9 +50,9 @@ module.exports = function webpackConfig({
   // Source-Maps
   config.devtool = devtool
 
-  /******************************/
+  /** *************************** */
   /*       WEBPACK.ENTRY        */
-  /******************************/
+  /** *************************** */
   const entries = []
 
   // Add main entry glob
@@ -64,35 +66,44 @@ module.exports = function webpackConfig({
     entries
   )
 
-  /******************************/
+  /** *************************** */
   /*       WEBPACK.OUTPUT       */
-  /******************************/
+  /** *************************** */
   config.output = {
     path: target,
     filename: '[name].js',
     chunkFilename: '[id].chunk.js'
   }
-  /******************************/
+  /** *************************** */
   /*    WEBPACK.OPTIMIZATION    */
-  /******************************/
-  config.optimization = { minimize: minimize }
+  /** *************************** */
+  config.optimization = { minimize }
 
-  /******************************/
+  /** *************************** */
   /*       WEBPACK.LOADERS      */
-  /******************************/
+  /** *************************** */
   config.module = {
     rules: []
   }
 
-  const babelLoader = {
-    loader: require.resolve('babel-loader'),
+  // const babelLoader = {
+  //   loader: require.resolve('babel-loader'),
+  //   options: {
+  //     sourceMaps: true,
+  //     cacheDirectory: true,
+  //     ...createPreset({
+  //       vendor,
+  //       vendorVersion
+  //     })
+  //   }
+  // };
+
+  const compileTarget = createPreset.getTargetByVendor({ vendor, vendorVersion });
+  const esbuildLoader = {
+    loader: require.resolve('esbuild-loader'),
     options: {
-      sourceMaps: true,
-      cacheDirectory: true,
-      ...createPreset({
-        vendor,
-        vendorVersion
-      })
+      loader: 'tsx',
+      target: compileTarget,
     }
   };
 
@@ -104,7 +115,7 @@ module.exports = function webpackConfig({
         /node_modules/,
         resolve(process.cwd(), 'app/scripts/fontawesome.js'),
       ],
-      use: babelLoader,
+      use: esbuildLoader,
     },
     {
       test: /\.js$/,
@@ -123,9 +134,9 @@ module.exports = function webpackConfig({
     // }
   )
 
-  /******************************/
+  /** *************************** */
   /*     WEBPACK.PLUGINS        */
-  /******************************/
+  /** *************************** */
   config.plugins = []
 
   // Clear output directory
